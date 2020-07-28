@@ -1,9 +1,9 @@
 const info = (...params: string[]): void => {
-  console.log(params.join(' '));
+  process.env.NODE_ENV !== 'test' && console.log(params.join(' '));
 };
 
 const error = (...params: string[]): void => {
-  console.error(params.join(' '));
+  process.env.NODE_ENV !== 'test' && console.error(params.join(' '));
 };
 
 export default {
