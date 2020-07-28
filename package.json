@@ -6,8 +6,10 @@
   "scripts": {
     "lint": "eslint --ext .ts .",
     "tsc": "tsc",
-    "dev": "ts-node-dev src/index.ts",
-    "start": "node build/index.js"
+    "dev": "cross-env NODE_ENV=development ts-node-dev src/index.ts",
+    "start": "cross-env NODE_ENV=production node build/index.js",
+    "test": "cross-env NODE_ENV=test jest --watch --runInBand",
+    "coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -21,26 +23,43 @@
   },
   "homepage": "https://github.com/Sandermoen/SubmissionBox-backend#readme",
   "dependencies": {
+    "bcrypt": "^5.0.0",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.2",
     "express": "^4.17.1",
+    "helmet": "^3.23.3",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.25",
-    "redis": "^3.0.2"
+    "mongoose-unique-validator": "^2.0.3",
+    "redis": "^3.0.2",
+    "uuid": "^8.2.0",
+    "yup": "^0.29.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.6",
     "@types/express": "^4.17.7",
+    "@types/helmet": "0.0.47",
+    "@types/jest": "^26.0.7",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/mongoose": "^5.7.32",
+    "@types/mongoose-unique-validator": "^1.0.4",
+    "@types/morgan": "^1.9.1",
     "@types/redis": "^2.8.25",
+    "@types/supertest": "^2.0.10",
+    "@types/yup": "^0.29.3",
     "@typescript-eslint/eslint-plugin": "^3.7.0",
     "@typescript-eslint/parser": "^3.7.0",
+    "dotenv": "^8.2.0",
     "eslint": "^7.5.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
     "husky": "^4.2.5",
+    "jest": "^26.1.0",
     "lint-staged": "^10.2.11",
+    "morgan": "^1.10.0",
     "prettier": "^2.0.5",
+    "supertest": "^4.0.2",
+    "ts-jest": "^26.1.3",
     "ts-node-dev": "^1.0.0-pre.52",
     "typescript": "^3.9.7"
   },
@@ -51,5 +70,9 @@
   },
   "lint-staged": {
     "*.ts": "eslint --cache --fix"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "preset": "ts-jest"
   }
 }

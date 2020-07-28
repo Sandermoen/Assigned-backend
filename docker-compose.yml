@@ -1,18 +1,16 @@
 version: '3.8'
 
 services:
-  submissionbox-backend:
+  assigned-backend:
     container_name: backend
     build: ./
     command: npm start
-    working_dir: /usr/src/submissionbox-backend
-    env_file:
-      - .env
+    working_dir: /usr/src/assigned-backend
     ports:
       - 3001:3001
     volumes:
       - '/usr/src/app/node_modules'
-      - ./:/usr/src/submissionbox-backend
+      - ./:/usr/src/assigned-backend
 
   mongo:
     image: mongo
