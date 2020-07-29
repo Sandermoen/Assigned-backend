@@ -23,7 +23,7 @@ const userSchema = new Schema({
     required: true,
     minlength: 6,
   },
-  role: ['teacher', 'student'],
+  role: String,
 });
 
 userSchema.plugin(uniqueValidator);

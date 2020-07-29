@@ -11,7 +11,7 @@ import errorHandler from './middleware/errorHandler';
 import unknownEndpoint from './middleware/unknownEndpoint';
 import apiRouter from './routes';
 
-const redisClient = redis.createClient({
+export const redisClient = redis.createClient({
   url: config.REDIS_URI,
   password: config.REDIS_PASSWORD || undefined,
   port: 6379,
@@ -26,6 +26,7 @@ mongoose
   .connect(config.MONGO_URI as string, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    useCreateIndex: true,
   })
   .then(() => {
     logger.info('Connected to mongodb database');
@@ -37,10 +38,6 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan('dev'));
 app.use('/api/v1', apiRouter);
-
-app.get('/', (_req, res) => {
-  res.send('Hello!');
-});
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
