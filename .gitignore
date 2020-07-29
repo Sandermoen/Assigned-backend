@@ -3,3 +3,4 @@ node_modules
 .env
 .eslintcache
 docker-compose.dev.yml
+dump.rdb
