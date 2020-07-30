@@ -16,3 +16,8 @@ export interface IUser {
 export interface IUserDocument extends IUser, Document {}
 
 export type NonSensitiveUser = Omit<IUser, 'password'> & { id: string };
+
+export interface Credentials {
+  email: string;
+  password: string;
+}

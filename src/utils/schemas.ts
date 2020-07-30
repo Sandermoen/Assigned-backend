@@ -10,3 +10,8 @@ export const userSchema = yup.object().shape({
     .matches(/(teacher|student)/, 'A role has to be either student or teacher')
     .required(),
 });
+
+export const credentialSchema = yup.object().shape({
+  email: yup.string().required(),
+  password: yup.string().min(6).required(),
+});
