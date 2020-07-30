@@ -1,4 +1,5 @@
 import express from 'express';
+import 'express-async-errors';
 import mongoose from 'mongoose';
 import redis from 'redis';
 import cors from 'cors';
@@ -9,6 +10,7 @@ import config from './utils/config';
 import logger from './utils/logger';
 import errorHandler from './middleware/errorHandler';
 import unknownEndpoint from './middleware/unknownEndpoint';
+import tokenExtractor from './middleware/tokenExtractor';
 import apiRouter from './routes';
 
 export const redisClient = redis.createClient({
@@ -37,6 +39,7 @@ app.use(helmet());
 app.use(express.json());
 app.use(cors());
 app.use(morgan('dev'));
+app.use(tokenExtractor);
 app.use('/api/v1', apiRouter);
 
 app.use(unknownEndpoint);

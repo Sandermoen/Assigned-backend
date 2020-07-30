@@ -4,3 +4,4 @@ node_modules
 .eslintcache
 docker-compose.dev.yml
 dump.rdb
+coverage
