@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import User from '../models/User';
 import { RequestHandler } from 'express';
+import jwt from 'jsonwebtoken';
 
 import { IUser, Credentials } from '../types';
 import { userSchema, credentialSchema } from '../utils/schemas';
@@ -21,14 +22,14 @@ export const signUp: RequestHandler = async (req, res, next) => {
     abortEarly: false,
   })) as IUser;
 
-  const saltRounds = 10;
-  const hashedPassword = await bcrypt.hash(password, saltRounds);
+  // const saltRounds = 10;
+  // const hashedPassword = await bcrypt.hash(password, saltRounds);
   let newUser = new User({
     firstName,
     lastName,
     email,
     role,
-    password: hashedPassword,
+    password,
   });
 
   const existingUser = await User.findOne({ email });
@@ -80,4 +81,15 @@ export const login: RequestHandler = async (req, res) => {
     httpOnly: true,
   });
   return res.json({ user: user, accessToken });
+};
+
+export const auth: RequestHandler = (req, res) => {
+  // Using a string type assertion here because we already have middleware
+  // in place to handle a case where the token does not exist on protected routes
+  const token = req.token as string;
+  const decodedToken = jwt.decode(token);
+  if (decodedToken && decodedToken instanceof Object && decodedToken.user) {
+    return res.send(decodedToken.user);
+  }
+  return res.status(500).send({ error: 'Empty token.' });
 };

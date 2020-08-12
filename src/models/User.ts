@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 import uniqueValidator from 'mongoose-unique-validator';
 const Schema = mongoose.Schema;
 
@@ -36,6 +37,15 @@ userSchema.set('toJSON', {
     delete returnedObject.__v;
     delete returnedObject.password;
   },
+});
+
+userSchema.pre<IUserDocument>('save', async function (next) {
+  if (this.isNew) {
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(this.password, saltRounds);
+    this.password = hashedPassword;
+  }
+  next();
 });
 
 const UserModel = mongoose.model<IUserDocument>('User', userSchema);
