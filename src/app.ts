@@ -5,6 +5,8 @@ import redis from 'redis';
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import { promisify } from 'util';
 
 import config from './utils/config';
 import logger from './utils/logger';
@@ -13,11 +15,15 @@ import unknownEndpoint from './middleware/unknownEndpoint';
 import tokenExtractor from './middleware/tokenExtractor';
 import apiRouter from './routes';
 
-export const redisClient = redis.createClient({
+const redisClient = redis.createClient({
   url: config.REDIS_URI,
   password: config.REDIS_PASSWORD || undefined,
   port: 6379,
 });
+export const redisGet = promisify(redisClient.get.bind(redisClient));
+export const redisSet = promisify(redisClient.set.bind(redisClient));
+export const redisDel = promisify(redisClient.del.bind(redisClient));
+
 const app = express();
 
 redisClient.on('connect', () => {
@@ -37,6 +43,7 @@ mongoose
 
 app.use(helmet());
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors());
 app.use(morgan('dev'));
 app.use(tokenExtractor);

@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
-import { redisClient } from '../app';
+import { redisDel, redisSet } from '../app';
 
 export const generateAccessToken = (user: string): string => {
   if (!process.env.JWT_SECRET) {
@@ -14,10 +14,10 @@ export const generateAccessToken = (user: string): string => {
 
 export const refreshExpire = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
 
-export const generateRefreshToken = (key: string): string => {
+export const generateRefreshToken = async (key: string): Promise<string> => {
   const refreshToken = uuidv4();
-  redisClient.del(key);
-  redisClient.set(
+  await redisDel(key);
+  await redisSet(
     key,
     JSON.stringify({
       token: refreshToken,

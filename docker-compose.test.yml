@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  mongo:
+  mongo-test:
     container_name: mongo-test
     image: mongo
     restart: always
@@ -12,7 +12,7 @@ services:
     ports:
       - 27018:27017
 
-  redis:
+  redis-test:
     container_name: redis-test
     image: redis
     env_file: .env
