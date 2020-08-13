@@ -1,8 +1,8 @@
 import request from 'supertest';
-import app, { redisClient } from '../../app';
+import app from '../../app';
 import User from '../../models/User';
 import { IUser, IRefreshToken } from '../../types';
-import { promisify } from 'util';
+import { redisGet } from '../../app';
 
 const api = request(app);
 
@@ -68,7 +68,6 @@ describe('/users route', () => {
     beforeEach(async () => {
       const user = new User(credentials);
       await user.save();
-      // await api.post(`${baseUrl}/signup`).send(credentials);
     });
 
     test('handles logging in correctly', async () => {
@@ -114,8 +113,7 @@ describe('/users route', () => {
     });
   });
   describe('/refresh', () => {
-    const getAsync = promisify(redisClient.get.bind(redisClient));
-    test('responds with status code 200 and replaces old refresh token with a new one', async () => {
+    test('responds with status code 204 and replaces old refresh token with a new one', async () => {
       expect.assertions(1);
       const signUpResponse = await api
         .post(`${baseUrl}/signup`)
@@ -129,12 +127,12 @@ describe('/users route', () => {
       await api
         .put(`${baseUrl}/refresh`)
         .set('Cookie', `refreshToken=${oldRefreshToken}`)
-        .expect('Content-Type', /json/)
+        .send({ email: credentials.email })
         .expect('Set-Cookie', /refreshToken/)
-        .expect(200);
+        .expect(204);
 
       const refreshToken = JSON.parse(
-        (await getAsync(credentials.email)) as string
+        (await redisGet(credentials.email)) as string
       ) as IRefreshToken;
 
       expect(refreshToken.token).not.toBe(oldRefreshToken);
@@ -143,20 +141,21 @@ describe('/users route', () => {
     test('responds with status code 401 and does not replace token when an invalid token is provided', async () => {
       await api.post(`${baseUrl}/signup`).send(credentials);
       const oldRefreshToken = JSON.parse(
-        (await getAsync(credentials.email)) as string
+        (await redisGet(credentials.email)) as string
       ) as IRefreshToken;
 
       await api
         .put(`${baseUrl}/refresh`)
         .set('Cookie', `refreshToken=invalidtoken`)
+        .send({ email: credentials.email })
         .expect('Content-Type', /json/)
         .expect(401);
 
       const newRefreshToken = JSON.parse(
-        (await getAsync(credentials.email)) as string
+        (await redisGet(credentials.email)) as string
       ) as IRefreshToken;
 
-      expect(oldRefreshToken).toBe(newRefreshToken);
+      expect(oldRefreshToken).toEqual(newRefreshToken);
     });
   });
 });
