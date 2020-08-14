@@ -13,5 +13,4 @@ before_install:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
 before_install:
-  - cd Sandermoen/Assigned-backend
   - touch .env
