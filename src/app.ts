@@ -15,11 +15,14 @@ import unknownEndpoint from './middleware/unknownEndpoint';
 import tokenExtractor from './middleware/tokenExtractor';
 import apiRouter from './routes';
 
-const redisClient = redis.createClient({
+export const redisClient = redis.createClient({
   url: config.REDIS_URI,
-  password: config.REDIS_PASSWORD || undefined,
   port: 6379,
 });
+if (config.REDIS_PASSWORD && process.env.NODE_ENV !== 'test') {
+  redisClient.auth(config.REDIS_PASSWORD);
+}
+
 export const redisGet = promisify(redisClient.get.bind(redisClient));
 export const redisSet = promisify(redisClient.set.bind(redisClient));
 export const redisDel = promisify(redisClient.del.bind(redisClient));

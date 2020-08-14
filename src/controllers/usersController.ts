@@ -35,7 +35,9 @@ export const signUp: RequestHandler = async (req, res, next) => {
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    res.status(400).send({ error: 'A user with that email already exists.' });
+    return res
+      .status(400)
+      .send({ error: 'A user with that email already exists.' });
   }
 
   const refreshToken = await generateRefreshToken(email);
@@ -128,10 +130,16 @@ export const refresh: RequestHandler = async (req, res) => {
   }
 
   const newToken = await generateRefreshToken(req.body.email);
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return res.status(500).send({ error: 'Could not find user.' });
+  }
+
+  const accessToken = generateAccessToken(user.toJSON());
 
   res.cookie('refreshToken', newToken, {
     maxAge: refreshExpire,
     httpOnly: true,
   });
-  return res.status(204).end();
+  return res.status(200).send({ accessToken });
 };
