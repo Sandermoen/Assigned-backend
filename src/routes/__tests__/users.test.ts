@@ -20,25 +20,28 @@ describe('/users route', () => {
   });
 
   describe('/signup', () => {
+    const signup = async (
+      credentials: { [key: string]: string | number | Record<string, unknown> },
+      expectedCode: number
+    ) => {
+      await api
+        .post(`${baseUrl}/signup`)
+        .send(credentials)
+        .expect('Content-Type', /json/)
+        .expect(expectedCode);
+    };
+
     describe('valid credentials', () => {
       test('creates and returns a new user upon signup', async () => {
         expect.assertions(1);
-        await api
-          .post(`${baseUrl}/signup`)
-          .send(credentials)
-          .expect('Content-Type', /json/)
-          .expect(201);
+        await signup(credentials, 201);
         const users = await User.find({});
         expect(users.length).toBe(1);
       });
 
       test('stores a hashed version of the password', async () => {
         expect.assertions(1);
-        await api
-          .post(`${baseUrl}/signup`)
-          .send(credentials)
-          .expect('Content-Type', /json/)
-          .expect(201);
+        await signup(credentials, 201);
         const user = await User.findOne({ email: credentials.email });
         if (user?.password) {
           expect(user.password).not.toBe(credentials.password);
@@ -53,50 +56,70 @@ describe('/users route', () => {
           firstName: 'test',
           lastName: 'hello',
         };
-        await api
-          .post(`${baseUrl}/signup`)
-          .send(credentials)
-          .expect('Content-Type', /json/)
-          .expect(400);
+        await signup(credentials, 400);
         const users = await User.find({});
         expect(users.length).toBe(0);
+      });
+
+      test('responds with status code 400 and does not create a user when user already exists', async () => {
+        const user = new User(credentials);
+        await user.save();
+        await signup(credentials, 400);
+        const users = await User.find({ email: credentials.email });
+        expect(users.length).toBe(1);
       });
     });
   });
 
   describe('/login', () => {
+    const login = async (
+      credentials: { [key: string]: string | number | Record<string, unknown> },
+      expectedCode: number
+    ) => {
+      await api
+        .post(`${baseUrl}/login`)
+        .send({ email: credentials.email, password: credentials.password })
+        .expect('Content-Type', /json/)
+        .expect(expectedCode);
+    };
+
     beforeEach(async () => {
       const user = new User(credentials);
       await user.save();
     });
 
-    test('handles logging in correctly', async () => {
-      await api
-        .post(`${baseUrl}/login`)
-        .send({ email: credentials.email, password: credentials.password })
-        .expect('Content-Type', /json/)
-        .expect(200);
+    test('handles logging in with correct information', async () => {
+      await login(
+        { email: credentials.email, password: credentials.password },
+        200
+      );
     });
 
-    test('responds with status code 401 for incorrect details', async () => {
-      await api
-        .post(`${baseUrl}/login`)
-        .send({
+    test('responds with status code 401 when user does not exist', async () => {
+      await login(
+        {
+          email: 'doesnot@exist.com',
+          password: 'incorrectpassword',
+        },
+        401
+      );
+    });
+
+    test('responds with status code 401 when the password is incorrent', async () => {
+      await login(
+        {
           email: credentials.email,
           password: 'incorrectpassword',
-        })
-        .expect('Content-Type', /json/)
-        .expect(401);
+        },
+        401
+      );
     });
 
-    test('responds with status code 400 for incorrect details', async () => {
-      await api
-        .post(`${baseUrl}/login`)
-        .send({ email: 'notanemail' })
-        .expect('Content-Type', /json/)
-        .expect(400);
+    test('responds with status code 400 for malformatted details', async () => {
+      await login({ email: 'notanemail' }, 400);
     });
   });
+
   describe('/auth', () => {
     test('responds with status code 200 and exchanges JWT token for user details', async () => {
       expect.assertions(1);
@@ -112,9 +135,10 @@ describe('/users route', () => {
       expect(user.body).toEqual(response.body.user);
     });
   });
+
   describe('/refresh', () => {
-    test('responds with status code 204 and replaces old refresh token with a new one', async () => {
-      expect.assertions(1);
+    test('responds with status code 200 and replaces old refresh token with a new one and responds with access token', async () => {
+      expect.assertions(2);
       const signUpResponse = await api
         .post(`${baseUrl}/signup`)
         .send(credentials);
@@ -124,18 +148,21 @@ describe('/users route', () => {
         .split('refreshToken=')[1]
         .split(';')[0];
 
-      await api
+      const response: {
+        body: { accessToken: string };
+      } = await api
         .put(`${baseUrl}/refresh`)
         .set('Cookie', `refreshToken=${oldRefreshToken}`)
         .send({ email: credentials.email })
         .expect('Set-Cookie', /refreshToken/)
-        .expect(204);
+        .expect(200);
 
       const refreshToken = JSON.parse(
         (await redisGet(credentials.email)) as string
       ) as IRefreshToken;
 
       expect(refreshToken.token).not.toBe(oldRefreshToken);
+      expect(response.body.accessToken).toBeDefined();
     });
 
     test('responds with status code 401 and does not replace token when an invalid token is provided', async () => {
