@@ -15,7 +15,7 @@ import unknownEndpoint from './middleware/unknownEndpoint';
 import tokenExtractor from './middleware/tokenExtractor';
 import apiRouter from './routes';
 
-const redisClient = redis.createClient({
+export const redisClient = redis.createClient({
   url: config.REDIS_URI,
   port: 6379,
 });

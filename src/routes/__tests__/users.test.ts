@@ -1,8 +1,9 @@
 import request from 'supertest';
 import app from '../../app';
+import mongoose from 'mongoose';
 import User from '../../models/User';
 import { IUser, IRefreshToken } from '../../types';
-import { redisGet } from '../../app';
+import { redisGet, redisClient } from '../../app';
 
 const api = request(app);
 
@@ -17,6 +18,11 @@ describe('/users route', () => {
   const baseUrl = '/api/v1/users';
   beforeEach(async () => {
     await User.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await mongoose.disconnect();
+    redisClient.quit();
   });
 
   describe('/signup', () => {
