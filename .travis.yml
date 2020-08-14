@@ -18,3 +18,5 @@ before_install:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
   - touch .env
+script:
+  - npm run coveralls
