@@ -4,7 +4,7 @@ import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 
 import { IUser, Credentials, IRefreshToken } from '../types';
-import { isRefreshToken } from '../utils/typeGuards';
+import { isRefreshToken, isString } from '../utils/typeGuards';
 import { userSchema, credentialSchema } from '../utils/schemas';
 import { isObject } from '../utils/typeGuards';
 import { redisGet } from '../app';
@@ -40,9 +40,8 @@ export const signUp: RequestHandler = async (req, res, next) => {
       .send({ error: 'A user with that email already exists.' });
   }
 
-  const refreshToken = await generateRefreshToken(email);
-
   newUser = await newUser.save();
+  const refreshToken = await generateRefreshToken(newUser.toJSON());
 
   if (!process.env.JWT_SECRET) {
     return next('Unable to sign JWT, no secret present.');
@@ -77,7 +76,7 @@ export const login: RequestHandler = async (req, res) => {
   }
 
   const accessToken = generateAccessToken(user.toJSON());
-  const refreshToken = await generateRefreshToken(user.email);
+  const refreshToken = await generateRefreshToken(user.toJSON());
 
   res.cookie('refreshToken', refreshToken, {
     maxAge: refreshExpire,
@@ -101,15 +100,16 @@ export const refresh: RequestHandler = async (req, res) => {
   if (!isObject(req.cookies)) {
     return res.status(400).send({ error: 'Invalid cookie.' });
   }
-  if (!isObject(req.body) || typeof req.body.email !== 'string') {
-    return res.status(400).send({ error: 'Invalid email.' });
-  }
-
   const invalidToken = () => {
     return res.status(401).send({ error: 'Invalid token.' });
   };
 
-  const jsonRefreshObject = await redisGet(req.body.email);
+  const oldRefreshToken = req.cookies.refreshToken;
+  if (!isString(oldRefreshToken)) {
+    return invalidToken();
+  }
+
+  const jsonRefreshObject = await redisGet(oldRefreshToken);
   if (!jsonRefreshObject) {
     return invalidToken();
   }
@@ -121,20 +121,22 @@ export const refresh: RequestHandler = async (req, res) => {
       .send({ error: 'Invalid refresh token object received.' });
   }
 
-  const refreshToken = req.cookies.refreshToken;
   if (
-    refreshToken !== refreshObject.token ||
+    oldRefreshToken !== refreshObject.token ||
     refreshObject.expiry < Date.now()
   ) {
     return invalidToken();
   }
 
-  const newToken = await generateRefreshToken(req.body.email);
-  const user = await User.findOne({ email: req.body.email });
+  const user = await User.findOne({ email: refreshObject.user.email });
   if (!user) {
     return res.status(500).send({ error: 'Could not find user.' });
   }
 
+  const newToken = await generateRefreshToken(
+    refreshObject.user,
+    oldRefreshToken
+  );
   const accessToken = generateAccessToken(user.toJSON());
 
   res.cookie('refreshToken', newToken, {
