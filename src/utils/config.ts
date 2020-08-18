@@ -3,6 +3,7 @@ dotenv.config();
 
 const PORT = process.env.PORT;
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD;
+const FRONT_END_URL = process.env.FRONT_END_URL;
 let MONGO_URI;
 let REDIS_URI;
 if (process.env.NODE_ENV === 'test') {
@@ -18,4 +19,5 @@ export default {
   MONGO_URI,
   REDIS_URI,
   REDIS_PASSWORD,
+  FRONT_END_URL,
 };

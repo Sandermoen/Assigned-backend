@@ -26,4 +26,5 @@ export interface IRefreshToken {
   token: string;
   issued: number;
   expiry: number;
+  user: NonSensitiveUser;
 }

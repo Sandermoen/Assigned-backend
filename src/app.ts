@@ -47,7 +47,13 @@ mongoose
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+app.use(
+  cors({
+    origin: config.FRONT_END_URL,
+    optionsSuccessStatus: 200,
+    credentials: true,
+  })
+);
 app.use(morgan('dev'));
 app.use(tokenExtractor);
 app.use('/api/v1', apiRouter);

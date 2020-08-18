@@ -17,7 +17,9 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
       case 'JsonWebTokenError':
         return res.status(401).send({ error: 'Invalid token.' });
       case 'TokenExpiredError':
-        return res.status(401).send({ error: 'Session expired.' });
+        return res
+          .status(401)
+          .send({ error: 'Session expired, please log in again.' });
     }
   }
   return next();
