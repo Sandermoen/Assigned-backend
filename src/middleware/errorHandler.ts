@@ -5,6 +5,7 @@ import { ValidationError } from 'yup';
 const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
   if (err instanceof Error) {
     logger.error(err.message);
+    err.stack && logger.error(err.stack);
     switch (err.name) {
       case 'CastError':
         return res.status(400).send({ error: 'Malformatted id.' });
