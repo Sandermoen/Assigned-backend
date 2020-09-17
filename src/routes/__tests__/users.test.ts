@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '../../app';
 import mongoose from 'mongoose';
 import User from '../../models/User';
-import { IUser, IRefreshToken } from '../../types';
+import { IRefreshToken, ISignUpResponse } from '../../types';
 import { redisGet, redisClient } from '../../app';
 
 const api = request(app);
@@ -129,9 +129,9 @@ describe('/users route', () => {
   describe('/auth', () => {
     test('responds with status code 200 and exchanges JWT token for user details', async () => {
       expect.assertions(1);
-      const response: {
-        body: { user: IUser & { id: string }; accessToken: string };
-      } = await api.post(`${baseUrl}/signup`).send(credentials);
+      const response: ISignUpResponse = await api
+        .post(`${baseUrl}/signup`)
+        .send(credentials);
 
       const user = await api
         .get(`${baseUrl}/auth`)
