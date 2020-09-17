@@ -28,3 +28,10 @@ export interface IRefreshToken {
   expiry: number;
   user: NonSensitiveUser;
 }
+
+export interface ISignUpResponse {
+  body: {
+    user: IUser & { id: string };
+    accessToken: string;
+  };
+}

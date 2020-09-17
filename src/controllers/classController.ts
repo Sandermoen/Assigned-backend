@@ -21,5 +21,5 @@ export const createClass: RequestHandler = async (req, res) => {
     teachers: [{ user: dbUser.id as string }],
   });
   await newClass.save();
-  return res.send(className);
+  return res.send({ className });
 };
