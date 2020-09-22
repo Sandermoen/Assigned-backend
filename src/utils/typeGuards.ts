@@ -9,7 +9,10 @@ export const isString = (value: unknown): value is string => {
 };
 
 export const isRole = (value: unknown): value is Role => {
-  if (!isString(value) || !Object.values<string>(Role).includes(value)) {
+  if (
+    !isString(value) ||
+    !Object.values<string>(Role).includes(value.toLowerCase())
+  ) {
     return false;
   }
   return true;
