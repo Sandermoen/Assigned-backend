@@ -15,7 +15,7 @@ const protectedRoute: RequestHandler = (req, res, next) => {
     unknown
   >;
 
-  if (!decodedToken.user || !isNonSensitiveUser(decodedToken.user)) {
+  if (!isNonSensitiveUser(decodedToken.user)) {
     return res.status(500).send({ error: 'Unable to verify user.' });
   }
 
