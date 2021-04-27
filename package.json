@@ -32,7 +32,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.25",
     "mongoose-unique-validator": "^2.0.3",
-    "redis": "^3.0.2",
+    "redis": "^3.1.1",
     "uuid": "^8.2.0",
     "yup": "^0.29.2"
   },
